@@ -56,6 +56,7 @@ TRACE_EVENT(sched_kthread_stop_ret,
 /*
  * Tracepoint for task enqueue/dequeue:
  */
+#ifndef CONFIG_SCHED_BFS
 TRACE_EVENT(sched_enq_deq_task,
 
 	TP_PROTO(struct task_struct *p, int enqueue, unsigned int cpus_allowed),
@@ -439,6 +440,7 @@ TRACE_EVENT(sched_freq_alert,
 	TP_printk("cpu %d old_load=%llu new_load=%llu",
 		__entry->cpu, __entry->old_load, __entry->new_load)
 );
+#endif
 
 #endif	/* CONFIG_SCHED_FREQ_INPUT */
 
