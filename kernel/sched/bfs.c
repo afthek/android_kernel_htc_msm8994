@@ -4155,7 +4155,7 @@ __setscheduler(struct task_struct *p, struct rq *rq, int policy, int prio)
 		reset_rq_task(rq, p);
 		/* Resched only if we might now be preempted */
 		if (p->prio > oldprio || p->rt_priority > oldrtprio)
-			resched_task(p);
+			resched_curr(rq);
 	}
 }
 
