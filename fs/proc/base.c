@@ -1314,8 +1314,7 @@ static const struct file_operations proc_pid_sched_operations = {
  * Print out various scheduling related per-task fields:
  */
 
-#ifdef CONFIG_SMP
-
+#if defined(CONFIG_SMP) && !defined(CONFIG_SCHED_BFS)
 static int sched_wake_up_idle_show(struct seq_file *m, void *v)
 {
 	struct inode *inode = m->private;
@@ -2846,7 +2845,7 @@ static const struct pid_entry tgid_base_stuff[] = {
 	ONE("status",     S_IRUGO, proc_pid_status),
 	ONE("personality", S_IRUGO, proc_pid_personality),
 	INF("limits",	  S_IRUGO, proc_pid_limits),
-#ifdef CONFIG_SMP
+#if defined(CONFIG_SMP) && !defined(CONFIG_SCHED_BFS) 
 	REG("sched_wake_up_idle",      S_IRUGO|S_IWUSR, proc_pid_sched_wake_up_idle_operations),
 #endif
 #ifdef CONFIG_SCHED_HMP

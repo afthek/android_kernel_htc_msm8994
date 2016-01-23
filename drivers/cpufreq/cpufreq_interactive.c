@@ -76,7 +76,9 @@ static spinlock_t speedchange_cpumask_lock;
 static struct mutex gov_lock;
 
 static int set_window_count;
+#if 0
 static int migration_register_count;
+#endif
 static struct mutex sched_lock;
 
 /* Target load.  Lower values result in higher CPU speeds. */
@@ -684,6 +686,7 @@ static void cpufreq_interactive_boost(struct cpufreq_interactive_tunables *tunab
 		wake_up_process(speedchange_task);
 }
 
+#if 0
 static int load_change_callback(struct notifier_block *nb, unsigned long val,
 				void *data)
 {
@@ -720,6 +723,7 @@ static int load_change_callback(struct notifier_block *nb, unsigned long val,
 static struct notifier_block load_notifier_block = {
 	.notifier_call = load_change_callback,
 };
+#endif
 
 static int cpufreq_interactive_notifier(
 	struct notifier_block *nb, unsigned long val, void *data)
@@ -1157,12 +1161,14 @@ static int cpufreq_interactive_enable_sched_input(
 	if (!tunables->use_migration_notif)
 		goto out;
 
+#if 0
 	migration_register_count++;
 	if (migration_register_count > 1)
 		goto out;
 	else
 		atomic_notifier_chain_register(&load_alert_notifier_head,
 						&load_notifier_block);
+#endif
 out:
 	mutex_unlock(&sched_lock);
 	return rc;
@@ -1171,6 +1177,7 @@ out:
 static int cpufreq_interactive_disable_sched_input(
 			struct cpufreq_interactive_tunables *tunables)
 {
+#if 0
 	mutex_lock(&sched_lock);
 
 	if (tunables->use_migration_notif) {
@@ -1183,6 +1190,7 @@ static int cpufreq_interactive_disable_sched_input(
 	set_window_count--;
 
 	mutex_unlock(&sched_lock);
+#endif
 	return 0;
 }
 
@@ -1238,7 +1246,9 @@ static ssize_t store_use_migration_notif(
 	ret = kstrtoul(buf, 0, &val);
 	if (ret < 0)
 		return ret;
-
+#ifdef CONFIG_BFS
+	val = 0;
+#endif
 	if (tunables->use_migration_notif == (bool) val)
 		return count;
 	tunables->use_migration_notif = val;
@@ -1246,6 +1256,7 @@ static ssize_t store_use_migration_notif(
 	if (!tunables->use_sched_load)
 		return count;
 
+#if 0
 	mutex_lock(&sched_lock);
 	if (val) {
 		migration_register_count++;
@@ -1261,7 +1272,7 @@ static ssize_t store_use_migration_notif(
 					&load_notifier_block);
 	}
 	mutex_unlock(&sched_lock);
-
+#endif
 	return count;
 }
 
