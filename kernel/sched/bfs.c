@@ -977,7 +977,7 @@ void set_task_cpu(struct task_struct *p, unsigned int cpu)
 	 */
 	WARN_ON_ONCE(debug_locks && !lockdep_is_held(&grq.lock));
 #endif
-	trace_sched_migrate_task(p, cpu);
+	trace_sched_migrate_task(p, cpu, 0);
 	if (task_cpu(p) != cpu)
 		perf_sw_event(PERF_COUNT_SW_CPU_MIGRATIONS, 1, NULL, 0);
 
