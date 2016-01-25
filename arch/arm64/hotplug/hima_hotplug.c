@@ -18,6 +18,7 @@
 #include <linux/slab.h>
 #include <linux/input.h>
 #include <linux/kobject.h>
+#include <linux/kern_levels.h>
 
 #ifdef CONFIG_STATE_NOTIFIER
 #include <linux/state_notifier.h>
@@ -37,7 +38,6 @@
 #define DEFAULT_MAX_CPUS_ONLINE        8
 #define DEFAULT_MIN_UP_TIME            1500
 
-#define DEFAULT_NR_FSHIFT              3
 #define CAPACITY_RESERVE               50
 
 #if defined(CONFIG_ARCH_MSM8994)
@@ -48,7 +48,7 @@
 
 #define CPU_NR_THRESHOLD	       ((THREAD_CAPACITY << 1) - (THREAD_CAPACITY >> 1))
 
-#define MULT_FACTOR                    11
+#define MULT_FACTOR                    5
 #define DIV_FACTOR                     100000
 
 static struct delayed_work hima_hotplug_work;
@@ -74,7 +74,6 @@ static bool screen_on = 1;
 
 /* HotPlug Driver Tuning */
 static unsigned int def_sampling_ms = DEF_SAMPLING_MS;
-static unsigned int nr_fshift = DEFAULT_NR_FSHIFT;
 
 static unsigned int nr_run_thresholds_balanced[] = {
 	(THREAD_CAPACITY * 100 * MULT_FACTOR * 2) / DIV_FACTOR,
@@ -106,6 +105,11 @@ static unsigned int *nr_run_profiles[] = {
 	nr_run_thresholds_disable
 };
 
+unsigned int avg_nr_running(void)
+{
+	return (nr_active() * num_online_cpus());
+}
+
 static unsigned int calculate_thread_stats(void)
 {
 	unsigned int avg_nr_run = avg_nr_running();
@@ -113,18 +117,17 @@ static unsigned int calculate_thread_stats(void)
 	unsigned int threshold_size;
 	unsigned int *current_profile = nr_run_profiles[current_profile_no];
 
-        nr_fshift = 4;
-
 	if(current_profile_no == 0)
 		threshold_size = ARRAY_SIZE(nr_run_thresholds_balanced);
 	else if(current_profile_no == 1)
 		threshold_size = ARRAY_SIZE(nr_run_thresholds_eco);
 
 	for (nr_run = 1; nr_run < threshold_size; nr_run++) {
-		unsigned int nr_threshold;
-		nr_threshold = current_profile[nr_run];
+		unsigned int nr_threshold = current_profile[nr_run];
 
-		if (avg_nr_run <= (nr_threshold << (FSHIFT - nr_fshift)))
+		printk(KERN_WARNING "nr_running : %u | nr_threshold : %u | nr_run : %u", avg_nr_run, nr_threshold, nr_run);
+
+		if (avg_nr_run <= nr_threshold)
 			break;
 	}
 
@@ -138,7 +141,7 @@ static void update_per_cpu_stat(void)
 
 	for_each_online_cpu(cpu) {
 		l_ip_info = &per_cpu(ip_info, cpu);
-		l_ip_info->cpu_nr_running = avg_cpu_nr_running(cpu);
+		l_ip_info->cpu_nr_running = nr_active();
 	}
 
 	for_each_cpu_not(cpu, cpu_online_mask) {
@@ -323,7 +326,6 @@ show_one(max_cpus_online, max_cpus_online);
 show_one(current_profile_no, current_profile_no);
 show_one(cpu_nr_run_threshold, cpu_nr_run_threshold);
 show_one(def_sampling_ms, def_sampling_ms);
-show_one(nr_fshift, nr_fshift);
 
 #define store_one(file_name, object)		\
 static ssize_t store_##file_name		\
@@ -346,7 +348,6 @@ static ssize_t store_##file_name		\
 store_one(current_profile_no, current_profile_no);
 store_one(cpu_nr_run_threshold, cpu_nr_run_threshold);
 store_one(def_sampling_ms, def_sampling_ms);
-store_one(nr_fshift, nr_fshift);
 
 static ssize_t show_hima_hotplug_active(struct kobject *kobj,
 					struct kobj_attribute *attr,
@@ -428,7 +429,6 @@ KERNEL_ATTR_RW(max_cpus_online);
 KERNEL_ATTR_RW(current_profile_no);
 KERNEL_ATTR_RW(cpu_nr_run_threshold);
 KERNEL_ATTR_RW(def_sampling_ms);
-KERNEL_ATTR_RW(nr_fshift);
 
 static struct attribute *hima_hotplug_attrs[] = {
 	&hima_hotplug_active_attr.attr,
@@ -437,7 +437,6 @@ static struct attribute *hima_hotplug_attrs[] = {
 	&current_profile_no_attr.attr,
 	&cpu_nr_run_threshold_attr.attr,
 	&def_sampling_ms_attr.attr,
-	&nr_fshift_attr.attr,
 	NULL,
 };
 

@@ -76,7 +76,7 @@ static spinlock_t speedchange_cpumask_lock;
 static struct mutex gov_lock;
 
 static int set_window_count;
-#if 0
+#if !defined(CONFIG_SCHED_BFS)
 static int migration_register_count;
 #endif
 static struct mutex sched_lock;

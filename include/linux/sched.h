@@ -167,6 +167,7 @@ extern int nr_processes(void);
 extern unsigned long nr_running(void);
 extern unsigned long nr_iowait(void);
 extern unsigned long nr_iowait_cpu(int cpu);
+extern unsigned long nr_active(void);
 extern unsigned long this_cpu_load(void);
 
 extern void sched_update_nr_prod(int cpu, long delta, bool inc);
