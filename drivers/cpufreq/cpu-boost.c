@@ -51,9 +51,9 @@ module_param(boost_ms, uint, 0644);
 static unsigned int sync_threshold;
 module_param(sync_threshold, uint, 0644);
 
-static bool input_boost_enabled;
+static bool input_boost_enabled = true;
 
-static unsigned int input_boost_ms = 40;
+static unsigned int input_boost_ms = 500;
 module_param(input_boost_ms, uint, 0644);
 
 static unsigned int migration_load_threshold = 15;
@@ -305,6 +305,16 @@ static int boost_mig_sync_thread(void *data)
 	}
 
 	return 0;
+}
+
+bool check_cpuboost(int cpu)
+{
+       struct cpu_sync *i_sync_info;
+       i_sync_info = &per_cpu(sync_info, cpu);
+
+       if (i_sync_info->input_boost_min > 0)
+               return true;
+       return false;
 }
 
 static int boost_migration_notify(struct notifier_block *nb,

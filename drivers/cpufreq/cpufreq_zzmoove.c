@@ -39,7 +39,7 @@
 #define DEF_SAMPLING_DOWN_FACTOR		(1)
 #define MAX_SAMPLING_DOWN_FACTOR		(10)
 #define DEF_SMOOTH_UP				(75)	// ZZ: default cpu load trigger for 'boosting' scaling frequency
-#define DEF_SCALING_PROPORTIONAL		(0)	// ZZ: default for proportional scaling, disabled here
+#define DEF_SCALING_PROPORTIONAL		(1)	// ZZ: default for proportional scaling, disabled here
 #define DEF_FAST_SCALING_UP			(0)	// Yank: default fast scaling for upscaling
 #define DEF_FAST_SCALING_DOWN			(0)	// Yank: default fast scaling for downscaling
 #define DEF_AFS_THRESHOLD1			(25)	// ZZ: default auto fast scaling step one
@@ -733,8 +733,7 @@ static int zz_init(struct dbs_data *dbs_data, struct cpufreq_policy *policy)
 	}
 
 	dbs_data->tuners = tuners;
-	dbs_data->min_sampling_rate = MIN_SAMPLING_RATE_RATIO *
-		jiffies_to_usecs(10);
+	dbs_data->min_sampling_rate = MIN_SAMPLING_RATE_RATIO * 10000;
 	dbs_data->freq_table = cpufreq_frequency_get_table(policy->cpu);
 	dbs_data->pol_min = policy->min;
 	dbs_data->pol_max = policy->max;
@@ -813,7 +812,7 @@ MODULE_DESCRIPTION("'cpufreq_zzmoove' - A dynamic cpufreq governor based "
 MODULE_LICENSE("GPL");
 
 #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_ZZMOOVE
-fs_initcall(cpufreq_gov_dbs_init);
+arch_initcall(cpufreq_gov_dbs_init);
 #else
 module_init(cpufreq_gov_dbs_init);
 #endif
